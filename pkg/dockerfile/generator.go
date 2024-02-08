@@ -128,6 +128,7 @@ func (g *Generator) GenerateBase() (string, error) {
 		installPython,
 		aptInstalls,
 		g.pipInstalls(),
+		g.pipInstallTools(),
 		run,
 		`WORKDIR /src`,
 		`EXPOSE 5000`,
@@ -192,6 +193,7 @@ func (g *Generator) Generate(imageName string) (weightsBase string, dockerfile s
 		installPython,
 		aptInstalls,
 		g.pipInstalls(),
+		g.pipInstallTools(),
 		runCommands,
 	}
 
@@ -370,6 +372,13 @@ func (g *Generator) pipInstallStage() (string, error) {
 		"RUN --mount=type=cache,target=/root/.cache/pip pip install -t /dep -r " + containerPath,
 	}
 	return strings.Join(lines, "\n"), nil
+}
+
+func (g *Generator) pipInstallTools() string {
+	const env_path = "/opt/venv/tools/"
+	return "RUN python -m venv --symlinks " + env_path + " && " +
+		env_path + "/bin/python -m pip install 'datamodel-code-generator>=0.25' && " +
+		env_path + "/bin/datamodel-codegen --version"
 }
 
 func (g *Generator) pipInstalls() string {

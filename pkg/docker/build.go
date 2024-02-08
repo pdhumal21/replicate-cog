@@ -49,7 +49,7 @@ func Build(dir, dockerfile, imageName string, secrets []string, noCache bool, pr
 	return cmd.Run()
 }
 
-func BuildAddLabelsAndSchemaToImage(image string, labels map[string]string, schemaFile string) error {
+func BuildAddLabelsAndSchemaToImage(image string, labels map[string]string, bundledSchemaFile string, bundledSchemaPy string) error {
 	var args []string
 
 	args = append(args,
@@ -75,7 +75,9 @@ func BuildAddLabelsAndSchemaToImage(image string, labels map[string]string, sche
 	cmd := exec.Command("docker", args...)
 
 	dockerfile := "FROM " + image + "\n"
-	dockerfile += "COPY " + schemaFile + " .cog"
+	dockerfile += "COPY " + bundledSchemaFile + " .cog\n"
+	dockerfile += "RUN  /opt/venv/tools/bin/datamodel-codegen --input-file-type openapi --input " + bundledSchemaFile +
+		" --output " + bundledSchemaPy
 	cmd.Stdin = strings.NewReader(dockerfile)
 
 	console.Debug("$ " + strings.Join(cmd.Args, " "))
